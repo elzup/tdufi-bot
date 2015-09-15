@@ -1,0 +1,7 @@
+<?php
+define ('DEBUG' , 0);
+
+// 接続をする学生の情報
+define ('ID'   , '*******');
+define ('PASS' , '*******');
+define ('FILE_NAME' , 'data.json');

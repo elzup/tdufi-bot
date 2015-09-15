@@ -1,0 +1,10 @@
+
+
+# vendor
+vendor/
+
+# otoher lib
+lib/
+
+# secret file
+config.php
