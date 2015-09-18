@@ -8,3 +8,4 @@ lib/
 
 # secret file
 config.php
+twitter_config.php

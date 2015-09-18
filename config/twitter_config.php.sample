@@ -1,0 +1,8 @@
+<?php
+
+$userdata = new stdclass();
+
+$userdata->twitter_consumer_key        = '****';
+$userdata->twitter_consumer_key_secret = '****';
+$userdata->twitter_access_token        = '****';
+$userdata->twitter_access_token_secret = '****';

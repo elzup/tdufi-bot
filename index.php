@@ -1,7 +1,8 @@
 <?php
-require_once('./lib/simple_html_dom.php');
-require_once('./lib/twitteroauth.php');
-require_once('./lib/userdata.php');
+require_once('./vendor/autoload.php');
+
+require_once('./config/twitter_config.php');
+require_once('./config/config.php');
 
 $data = read_data();
 $items = get_rss_items($data);
