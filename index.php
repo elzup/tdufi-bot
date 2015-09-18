@@ -6,22 +6,23 @@ require_once('./config/config.php');
 
 $data = read_data();
 $items = get_rss_items($data);
-if ($items) {
-    save_data($data);
-}
+save_data($data);
 $items = array_reverse($items);
-$labs = get_assign();
-$posts = get_posts($labs, $items);
+# $labs = get_assign();
+
+$posts = get_posts($items);
+var_dump($posts);
+exit();
 post_tweets($posts, $userdata);
+
 
 // class
 class Itemobj { 
-//    public $about;
-//    public $lab_id;
-//    public $lab_str;
+    public $lab_str;
     public $univ_id;
+    public $rdf_id;
 
-    public function __construct($about, $title) {
+    public function __construct($about, $title, $rdf_id) {
 //        $this->about = $about;
         if (strpos($title, '未定') != FALSE) {
             $this->lab_str = '(未定)';
@@ -34,26 +35,20 @@ class Itemobj {
         preg_match('#\((?<uid>.*?)\).*「(?<name>.*?)研究室 \((?<lid>.)\)」#u', $title, $m);
 //        $this->lab_id = $m['lid'];
         $this->lab_str = $m['name'];
-//        $this->univ_id = $m['uid'];
+        $this->univ_id = $m['uid'];
+        $this->rdf_id = $rdf_id;
     }
 }
 
 // methods
 function get_rss_items(&$data) {
-    list($key,$last_id) = each($data->last);
-    if (DEBUG) {
-        $last_id = 'hoge';
-    }
     $url = 'https://' . ID . ':' . PASS . '@www.mlab.im.dendai.ac.jp/bthesis/bachelor/rss.xml';
     $rss = simplexml_load_file($url);
     $items = array();
     $i = 0;
     foreach ($rss->item as $item) {
         $rdf = $item->attributes('http://www.w3.org/1999/02/22-rdf-syntax-ns#');
-        if ($rdf->about[0] == $last_id) {
-            break;
-        }
-        $items[] = new Itemobj($rdf->about, $item->title);
+        $items[] = new Itemobj($rdf->about, $item->title, $rdf->about[0]);
         if ($i++ == 0) {
             $data->last = $rdf->about;
         }
@@ -62,6 +57,11 @@ function get_rss_items(&$data) {
 }
 
 
+function grouping_lab($items) {
+}
+
+
+# @Depected
 function get_assign() {
     $url = 'http://www.mlab.im.dendai.ac.jp/bthesis2015/StudentDeploy.jsp?displayOrder=2';
     $data = array(
@@ -138,15 +138,26 @@ function post_tweets($posts, $userdata) {
     }
 }
 
-function get_posts($labs, $items) {
+function get_posts($items) {
     $texts = array();
-    foreach ($items as $s) {
-        $subs = explode(',', '山田,柿崎,森本,森谷');
-        $max = in_array($s->lab_str, $subs) ? 2 : 12;
-        if (!isset($labs[$s->lab_str])) {
-            continue;
+    $labs = array();
+    foreach ($items as $item) {
+        // TODO: only news from rdf_id
+        if (! isset($labs[$item->lab_str])) {
+            $labs[$item->lab_str] = array();
         }
-        $texts[] = create_text($s->lab_str, $labs[$s->lab_str], $max);
+        // HACK: havy roop
+        foreach ($labs as $lab) {
+            if (! in_array($item->univ_id, $lab)) {
+                $labs[$item->lab_str] = array_diff($labs[$item->lab_str], array($item->univ_id));
+            }
+        }
+        $labs[$item->lab_str][] = $item->univ_id;
+        if (TRUE) {
+            $subs = explode(',', '山田,柿崎,森本,森谷');
+            $max = in_array($item->lab_str, $subs) ? 2 : 12;
+            $texts[] = create_text($item->lab_str, count($labs[$item->lab_str]), $max);
+        }
     }
     return $texts;
 }
@@ -166,6 +177,7 @@ EOF;
     $name_suffix = '研';
     $graph = str_repeat('■', $fill) . str_repeat('□', $emp) . str_repeat('◆', $over);
     $text = <<<TEXT
+【2015年度 13FI生】
 {$name}{$name_suffix} 希望が増えました
 {$graph}
 $num/$max
