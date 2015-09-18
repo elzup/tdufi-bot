@@ -5,12 +5,13 @@ require_once('./config/twitter_config.php');
 require_once('./config/config.php');
 
 $data = read_data();
+$last_id = $data->last->{'0'};
 $items = get_rss_items($data);
 save_data($data);
 $items = array_reverse($items);
 # $labs = get_assign();
 
-$posts = get_posts($items);
+$posts = get_posts($items, $last_id);
 var_dump($posts);
 exit();
 post_tweets($posts, $userdata);
@@ -23,7 +24,7 @@ class Itemobj {
     public $rdf_id;
 
     public function __construct($about, $title, $rdf_id) {
-//        $this->about = $about;
+        $this->rdf_id = $rdf_id;
         if (strpos($title, '未定') != FALSE) {
             $this->lab_str = '(未定)';
             return;
@@ -36,7 +37,6 @@ class Itemobj {
 //        $this->lab_id = $m['lid'];
         $this->lab_str = $m['name'];
         $this->univ_id = $m['uid'];
-        $this->rdf_id = $rdf_id;
     }
 }
 
@@ -50,16 +50,11 @@ function get_rss_items(&$data) {
         $rdf = $item->attributes('http://www.w3.org/1999/02/22-rdf-syntax-ns#');
         $items[] = new Itemobj($rdf->about, $item->title, $rdf->about[0]);
         if ($i++ == 0) {
-            $data->last = $rdf->about;
+            $data->last = $rdf->about[0];
         }
     }
     return $items;
 }
-
-
-function grouping_lab($items) {
-}
-
 
 # @Depected
 function get_assign() {
@@ -138,11 +133,11 @@ function post_tweets($posts, $userdata) {
     }
 }
 
-function get_posts($items) {
+function get_posts($items, $last_id) {
     $texts = array();
     $labs = array();
+    $is_new = FALSE;
     foreach ($items as $item) {
-        // TODO: only news from rdf_id
         if (! isset($labs[$item->lab_str])) {
             $labs[$item->lab_str] = array();
         }
@@ -153,10 +148,19 @@ function get_posts($items) {
             }
         }
         $labs[$item->lab_str][] = $item->univ_id;
-        if (TRUE) {
+        if ($is_new) {
             $subs = explode(',', '山田,柿崎,森本,森谷');
             $max = in_array($item->lab_str, $subs) ? 2 : 12;
             $texts[] = create_text($item->lab_str, count($labs[$item->lab_str]), $max);
+        }
+        if (DEBUG) {
+            echo $item->rdf_id . ':' . $last_id . PHP_EOL;
+        }
+
+        if ($item->rdf_id == $last_id) {
+            echo '--';
+            echo $item->rdf_id . ':' . $last_id . PHP_EOL;
+            $is_new = TRUE;
         }
     }
     return $texts;
