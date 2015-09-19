@@ -132,7 +132,11 @@ function post_tweets($posts, $userdata) {
         $param = array(
             'status' => $text,
         );
-        $res = $to->post($url, $param);
+        try {
+            $res = $to->post($url, $param);
+        } catch (TwistException $e) {
+            echo 'post deplicate' . PHP_EOL;
+        }
         echo '--';
         var_dump($res);
     }
