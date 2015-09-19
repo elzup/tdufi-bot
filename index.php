@@ -14,11 +14,8 @@ $items = get_rss_items($data);
 # $labs = get_assign();
 
 $posts = get_posts($items, $last_id);
-if (DEBUG) {
-    var_dump($posts);
-}
-post_tweets($posts, $userdata);
 var_dump($posts);
+post_tweets($posts, $userdata);
 save_data($data);
 
 // methods
@@ -80,10 +77,10 @@ function get_posts($items, $last_id) {
             continue;
         }
         // HACK: havy roop
-        foreach ($labs as $lab) {
-            if (! in_array($uid, $lab)) {
-                $labs[$lab_name] = array_diff($labs[$lab_name], array($uid));
-                $prev_lab = $lab_name;
+        foreach ($labs as $lname => $lab) {
+            if (in_array($uid, $lab)) {
+                $labs[$lname] = array_diff($labs[$lname], array($uid));
+                $prev_lab = $lname;
                 break;
             }
         }
@@ -105,6 +102,7 @@ function get_posts($items, $last_id) {
 
 function create_text($name, $lab_name, $num, $max, $prev_lab) {
     // TODO: 全体的にconstants 化
+    echo $prev_lab . PHP_EOL;
     if (in_array($lab_name, array('学科外(系列等)', '(未定)'))) {
         return <<<EOF
 {$lab_name} 登録者が増えました
@@ -122,7 +120,7 @@ EOF;
         $text .= "{$name}さん が {$prev_lab}{$name_suffix} に希望を失いました\n";
     }
     $text .= <<<TEXT
-{$name} が {$lab_name}{$name_suffix} に希望を見い出しました
+{$name}さん が {$lab_name}{$name_suffix} に希望を見い出しました
 【{$lab_name}{$name_suffix}】
 {$graph}
 $num/$max
