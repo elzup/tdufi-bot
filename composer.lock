@@ -4,59 +4,66 @@
         "Read more about it at http://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "a9ffc18a57b83376b8a4c5c9facbb557",
+    "hash": "34d095509167210e48bccefaa21080bb",
     "packages": [
         {
-            "name": "abraham/twitteroauth",
-            "version": "0.5.0",
+            "name": "mpyw/twistoauth",
+            "version": "dev-master",
             "source": {
                 "type": "git",
-                "url": "https://github.com/abraham/twitteroauth.git",
-                "reference": "875918bad4f1e9651635ee3107f5edcce34b4acd"
+                "url": "https://github.com/mpyw/TwistOAuth.git",
+                "reference": "ab876d3c803808812daa09efe5072a4cd9e2379d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/abraham/twitteroauth/zipball/875918bad4f1e9651635ee3107f5edcce34b4acd",
-                "reference": "875918bad4f1e9651635ee3107f5edcce34b4acd",
+                "url": "https://api.github.com/repos/mpyw/TwistOAuth/zipball/ab876d3c803808812daa09efe5072a4cd9e2379d",
+                "reference": "ab876d3c803808812daa09efe5072a4cd9e2379d",
                 "shasum": ""
             },
             "require": {
-                "ext-curl": "*",
-                "php": ">=5.4.0"
-            },
-            "require-dev": {
-                "phpmd/phpmd": "2.*",
-                "phpunit/phpunit": "4.*",
-                "squizlabs/php_codesniffer": "2.*"
+                "ext-hash": "*",
+                "ext-json": "*",
+                "ext-reflection": "*",
+                "lib-curl": "*",
+                "lib-libxml": "*",
+                "lib-openssl": "*",
+                "lib-pcre": "*",
+                "php": ">=5.3.2"
             },
             "type": "library",
             "autoload": {
-                "psr-4": {
-                    "Abraham\\TwitterOAuth\\": "src"
-                }
+                "classmap": [
+                    "src/"
+                ]
             },
             "notification-url": "https://packagist.org/downloads/",
             "license": [
-                "MIT"
+                "BSD-2-Clause"
             ],
             "authors": [
                 {
-                    "name": "Abraham Williams",
-                    "email": "abraham@abrah.am",
-                    "homepage": "https://abrah.am",
-                    "role": "Developer"
+                    "name": "CertaiN",
+                    "email": "ryosuke_i_628@yahoo.co.jp",
+                    "homepage": "https://gravatar.com/mpyw",
+                    "role": "developer"
                 }
             ],
-            "description": "The most popular PHP library for use with the Twitter OAuth REST API.",
-            "homepage": "https://twitteroauth.com",
+            "description": "Advanced PHP Twitter library.",
             "keywords": [
+                "Twitpic",
+                "UserStream",
                 "api",
+                "async",
+                "asynchronous",
+                "image",
+                "multiple",
                 "oauth",
-                "rest",
-                "social",
-                "twitter"
+                "paralell",
+                "streaming",
+                "twitter",
+                "upload"
             ],
-            "time": "2015-01-22 21:47:15"
+            "time": "2015-09-15 15:33:41"
         },
         {
             "name": "sunra/php-simple-html-dom-parser",
@@ -105,7 +112,9 @@
     "packages-dev": [],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": [],
+    "stability-flags": {
+        "mpyw/twistoauth": 20
+    },
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": [],

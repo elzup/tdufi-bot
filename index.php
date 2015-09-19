@@ -1,5 +1,6 @@
 <?php
 require_once('./vendor/autoload.php');
+use Abraham\TwitterOAuth\TwitterOAuth;
 
 require_once('./config/twitter_config.php');
 require_once('./config/config.php');
@@ -7,14 +8,16 @@ require_once('./config/config.php');
 $data = read_data();
 $last_id = $data->last->{'0'};
 $items = get_rss_items($data);
-save_data($data);
 $items = array_reverse($items);
 # $labs = get_assign();
 
 $posts = get_posts($items, $last_id);
-var_dump($posts);
-exit();
+if (DEBUG) {
+    var_dump($posts);
+}
 post_tweets($posts, $userdata);
+var_dump($posts);
+save_data($data);
 
 
 // class
@@ -124,12 +127,14 @@ function post_tweets($posts, $userdata) {
             echo $text;
             continue;
         }
-        $connection = new TwitterOAuth($userdata->twitter_consumer_key, $userdata->twitter_consumer_key_secret, $userdata->twitter_access_token, $userdata->twitter_access_token_secret);
+        $to = new TwistOAuth($userdata->twitter_consumer_key, $userdata->twitter_consumer_key_secret, $userdata->twitter_access_token, $userdata->twitter_access_token_secret);
         $url = 'statuses/update';
         $param = array(
             'status' => $text,
         );
-        $connection->post($url, $param);
+        $res = $to->post($url, $param);
+        echo '--';
+        var_dump($res);
     }
 }
 
@@ -158,8 +163,6 @@ function get_posts($items, $last_id) {
         }
 
         if ($item->rdf_id == $last_id) {
-            echo '--';
-            echo $item->rdf_id . ':' . $last_id . PHP_EOL;
             $is_new = TRUE;
         }
     }
