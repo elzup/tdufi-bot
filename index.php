@@ -5,10 +5,12 @@ use Abraham\TwitterOAuth\TwitterOAuth;
 require_once('./config/twitter_config.php');
 require_once('./config/config.php');
 
+require_once('./class/item.php');
+require_once('./helper/log_helper.php');
+
 $data = read_data();
 $last_id = $data->last->{'0'};
 $items = get_rss_items($data);
-$items = array_reverse($items);
 # $labs = get_assign();
 
 $posts = get_posts($items, $last_id);
@@ -18,30 +20,6 @@ if (DEBUG) {
 post_tweets($posts, $userdata);
 var_dump($posts);
 save_data($data);
-
-
-// class
-class Itemobj { 
-    public $lab_str;
-    public $univ_id;
-    public $rdf_id;
-
-    public function __construct($about, $title, $rdf_id) {
-        $this->rdf_id = $rdf_id;
-        if (strpos($title, '未定') != FALSE) {
-            $this->lab_str = '(未定)';
-            return;
-        }
-        if (strpos($title, '学科外') != FALSE) {
-            $this->lab_str = '学科外(系列等)';
-            return;
-        }
-        preg_match('#\((?<uid>.*?)\).*「(?<name>.*?)研究室 \((?<lid>.)\)」#u', $title, $m);
-//        $this->lab_id = $m['lid'];
-        $this->lab_str = $m['name'];
-        $this->univ_id = $m['uid'];
-    }
-}
 
 // methods
 function get_rss_items(&$data) {
@@ -56,65 +34,8 @@ function get_rss_items(&$data) {
             $data->last = $rdf->about[0];
         }
     }
-    return $items;
-}
 
-# @Depected
-function get_assign() {
-    $url = 'http://www.mlab.im.dendai.ac.jp/bthesis2015/StudentDeploy.jsp?displayOrder=2';
-    $data = array(
-        "id" => ID,
-        "code" => PASS,
-        "func" => "authByRadius"
-    );
-    $data = http_build_query($data, "", "&");
-    //header
-    $header = array(
-        "Content-Type: application/x-www-form-urlencoded",
-        "Content-Length: ".strlen($data)
-    );
-    $context = array(
-        "http" => array(
-            "method"  => "POST",
-            "header"  => implode("\r\n", $header),
-            "content" => $data
-        )
-    );
-    $f = file_get_contents($url, false, stream_context_create($context));
-    $html = str_get_html($f);
-    $labs = array();
-    $names_text = '星野 絹川 佐々木 小山 矢島 齊藤 小坂 中島 高橋 鉄谷 川澄 増田 岩井 竜田 山田 柿崎 森本 森谷 学科外(系列等) (未定)';
-    foreach (explode(' ', $names_text) as $name) {
-        $labs[$name] = 0;
-    }
-    foreach ($html->find('tr') as $tr) {
-        if ($tr->find('th')) {
-            continue;
-        }
-        $name = $tr->find('td', 2)->innertext;
-        $labs[$name]++;
-    }
-    return $labs;
-}
-
-/**
- * 既読フィードログファイルの読み取り
- */
-function read_data() {
-    // TODO: 空ファイル例外
-    $handle = fopen(FILE_NAME, 'r');
-    $data = json_decode(fread($handle, filesize(FILE_NAME)));
-    fclose($handle);
-    return $data;
-}
-
-/**
- * 既読フィードログファイルの更新
- */
-function save_data($data) {
-    $handle = fopen(FILE_NAME, 'w');
-    fwrite($handle,json_encode($data));
-    fclose($handle);
+    return array_reverse($items);
 }
 
 
@@ -147,20 +68,25 @@ function get_posts($items, $last_id) {
     $labs = array();
     $is_new = FALSE;
     foreach ($items as $item) {
-        if (! isset($labs[$item->lab_str])) {
-            $labs[$item->lab_str] = array();
+        $prev_lab = NULL;
+        $uid = $item->uid;
+        $lab_name = $item->lab_name;
+        if (! isset($labs[$lab_name])) {
+            $labs[$lab_name] = array();
         }
         // HACK: havy roop
         foreach ($labs as $lab) {
-            if (! in_array($item->univ_id, $lab)) {
-                $labs[$item->lab_str] = array_diff($labs[$item->lab_str], array($item->univ_id));
+            if (! in_array($uid, $lab)) {
+                $labs[$lab_name] = array_diff($labs[$lab_name], array($uid));
+                $prev_lab = $lab_name;
+                break;
             }
         }
-        $labs[$item->lab_str][] = $item->univ_id;
+        $labs[$lab_name][] = $uid;
         if ($is_new) {
             $subs = explode(',', '山田,柿崎,森本,森谷');
-            $max = in_array($item->lab_str, $subs) ? 2 : 12;
-            $texts[] = create_text($item->lab_str, count($labs[$item->lab_str]), $max);
+            $max = in_array($lab_name, $subs) ? 2 : 12;
+            $texts[] = create_text($lab_name, count($labs[$lab_name]), $max);
         }
         if (DEBUG) {
             echo $item->rdf_id . ':' . $last_id . PHP_EOL;
@@ -196,4 +122,5 @@ $num/$max
 TEXT;
     return $text;
 }
+
 
