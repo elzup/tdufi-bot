@@ -63,6 +63,7 @@ function post_tweets($posts, $userdata) {
     }
 }
 
+
 function get_posts($items, $last_id) {
     $texts = array();
     $labs = array();
@@ -73,6 +74,10 @@ function get_posts($items, $last_id) {
         $lab_name = $item->lab_name;
         if (! isset($labs[$lab_name])) {
             $labs[$lab_name] = array();
+        }
+        # skip no move
+        if (in_array($uid, $labs[$lab_name])) {
+            continue;
         }
         // HACK: havy roop
         foreach ($labs as $lab) {
@@ -86,12 +91,11 @@ function get_posts($items, $last_id) {
         if ($is_new) {
             $subs = explode(',', '山田,柿崎,森本,森谷');
             $max = in_array($lab_name, $subs) ? 2 : 12;
-            $texts[] = create_text($lab_name, count($labs[$lab_name]), $max);
+            $texts[] = create_text($item->get_secret_name(), $lab_name, count($labs[$lab_name]), $max, $prev_lab);
         }
         if (DEBUG) {
             echo $item->rdf_id . ':' . $last_id . PHP_EOL;
         }
-
         if ($item->rdf_id == $last_id) {
             $is_new = TRUE;
         }
@@ -99,11 +103,11 @@ function get_posts($items, $last_id) {
     return $texts;
 }
 
-function create_text($name, $num, $max) {
+function create_text($name, $lab_name, $num, $max, $prev_lab) {
     // TODO: 全体的にconstants 化
-    if (in_array($name, array('学科外(系列等)', '(未定)'))) {
+    if (in_array($lab_name, array('学科外(系列等)', '(未定)'))) {
         return <<<EOF
-{$name} 登録者が増えました
+{$lab_name} 登録者が増えました
 {$num}名
 
 EOF;
@@ -113,9 +117,13 @@ EOF;
     $emp  = $max - $fill;
     $name_suffix = '研';
     $graph = str_repeat('■', $fill) . str_repeat('□', $emp) . str_repeat('◆', $over);
-    $text = <<<TEXT
-【2015年度 13FI生】
-{$name}{$name_suffix} 希望が増えました
+    $text = '';
+    if (isset($prev_lab)) {
+        $text .= "{$name}さん が {$prev_lab}{$name_suffix} に希望を失いました\n";
+    }
+    $text .= <<<TEXT
+{$name} が {$lab_name}{$name_suffix} に希望を見い出しました
+【{$lab_name}{$name_suffix}】
 {$graph}
 $num/$max
 

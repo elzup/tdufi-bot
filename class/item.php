@@ -4,6 +4,7 @@ class Itemobj {
     public $lab_name;
     public $uid;
     public $rdf_id;
+    public static $names;
 
     public function __construct($about, $title, $rdf_id) {
         $this->rdf_id = $rdf_id;
@@ -20,5 +21,15 @@ class Itemobj {
         $this->lab_name = $m['name'];
         $this->uid = $m['uid'];
     }
+
+    public function get_secret_name() {
+        $_uid = (int) substr($this->uid, 4, 3);
+        if (isset(Itemobj::$names[$_uid])) {
+            return Itemobj::$names[$_uid];
+        }
+        return "アンドレ";
+
+    }
 }
-# require_once dirname(__FILE__) . '/words.txt';
+$f = file_get_contents(dirname(__FILE__) . '/../data/words.txt');
+Itemobj::$names = explode("\n", trim($f));
