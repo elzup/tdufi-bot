@@ -38,9 +38,6 @@ function get_rss_items(&$data) {
 
 function post_tweets($posts, $userdata) {
     foreach($posts as $i => $text) {
-        if ($i == 5) {
-            break;
-        }
         if (DEBUG) {
             echo $text;
             continue;
@@ -85,7 +82,8 @@ function get_posts($items, $last_id) {
             }
         }
         $labs[$lab_name][] = $uid;
-        if ($is_new) {
+        # NOTE: mute akameco
+        if ($is_new && $uid != "13fi451") {
             $subs = explode(',', '山田,柿崎,森本,森谷');
             $max = in_array($lab_name, $subs) ? 2 : 12;
             $texts[] = create_text($item->get_secret_name(), $lab_name, count($labs[$lab_name]), $max, $prev_lab);
@@ -120,7 +118,7 @@ EOF;
         $text .= "{$name}さん が {$prev_lab}{$name_suffix} に希望を失いました\n";
     }
     $text .= <<<TEXT
-{$name}さん が {$lab_name}{$name_suffix} に希望を見い出しました
+{$name}さん が {$lab_name}{$name_suffix} に希望しました
 【{$lab_name}{$name_suffix}】
 {$graph}
 $num/$max
