@@ -11,11 +11,11 @@ require_once('./helper/log_helper.php');
 $pre_data = read_data();
 $data = get_newdata();
 
-$labs = create_labs($pre_data, $data);
+$labs = create_labs($data, $pre_data);
 
 if (!empty($labs)) {
     $post_texts = get_post_tweets($labs);
-    post_tweets($post_texts);
+    post_tweets($post_texts, $userdata);
     save_data($data);
 }
 
@@ -36,17 +36,18 @@ function create_labs($data, $pre_data) {
     $labs = array();
     foreach($data as $lab_name => $n) {
         $lab = new Lab($lab_name, $n, $pre_data->{$lab_name});
-        if ($lab->is_updated()) {
+        if ($lab->is_include() and $lab->is_main()) {
             $labs[] = $lab;
         }
     }
     return $labs;
 }
 
-function post_tweets($post_texts) {
+function post_tweets($post_texts, $userdata) {
     foreach($post_texts as $i => $text) {
+        echo 'POST:' . PHP_EOL;
+        echo $text . PHP_EOL;
         if (DEBUG) {
-            echo $text;
             continue;
         }
         $to = new TwistOAuth(
@@ -62,9 +63,7 @@ function post_tweets($post_texts) {
         try {
             $res = $to->post($url, $param);
         } catch (TwistException $e) {
-            echo 'post deplicate' . PHP_EOL;
+            var_dump($e);
         }
-        echo '--';
-        var_dump($res);
     }
 }

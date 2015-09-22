@@ -7,7 +7,7 @@ class Lab {
     public $num;
 
     public function __construct($lab_name, $num, $pre_num) {
-        $this->lab_name = $lab_name . Lab::$lab_name_prefix;
+        $this->lab_name = $lab_name;
         $this->num = $num;
         $this->pre_num = $pre_num;
     }
@@ -16,17 +16,24 @@ class Lab {
         return $this->num != $this->pre_num;
     }
 
+    public function is_include() {
+        return $this->num > $this->pre_num;
+    }
+
     public function get_tweet_text() {
         $text = $this->get_update_text();
-        if (! in_array($this->lab_name, array('学科外(系列等)', '(未定)'))) {
+        if ($this->is_main()) {
             $text .= $this->get_rate_graph_text();
         }
         return $text;
     }
 
+    public function is_main() {
+        return ! in_array($this->lab_name, array('学科外(系列等)', '(未定)'));
+    }
+
     public function get_update_text() {
-        $diff_text = ["増えました", "減りました"][$this->num < $this->pre_num];
-        return "{$this->lab_name} 希望者が{$diff_text}ました\n{$this->pre_num}名 -> {$this->num}名\n";
+        return "{$this->lab_name}星 希望者が増えました\n {$this->num}名 / {$this->get_member_limit()}名\n";
     }
 
 
