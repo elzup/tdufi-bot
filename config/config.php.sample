@@ -2,6 +2,5 @@
 define ('DEBUG' , 0);
 
 // 接続をする学生の情報
-define ('ID'   , '*******');
-define ('PASS' , '*******');
 define ('FILE_NAME' , 'data/data.json');
+define('API_URL', 'https://tdu13fi.herokuapp.com/api/v1/count');
