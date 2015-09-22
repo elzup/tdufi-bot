@@ -5,7 +5,6 @@ use Abraham\TwitterOAuth\TwitterOAuth;
 require_once('./config/twitter_config.php');
 require_once('./config/config.php');
 
-require_once('./class/item.php');
 require_once('./class/lab.php');
 require_once('./helper/log_helper.php');
 
@@ -15,9 +14,17 @@ $data = get_newdata();
 $labs = create_labs($pre_data, $data);
 
 if (!empty($labs)) {
-    $post_texts = create_text($labs);
+    $post_texts = get_post_tweets($labs);
     post_tweets($post_texts);
     save_data($data);
+}
+
+function get_post_tweets($labs) {
+    $post_texts = array();
+    foreach ($labs as $lab) {
+        $post_texts[] = $lab->get_tweet_text();
+    }
+    return $post_texts;
 }
 
 function get_newdata() {
@@ -36,42 +43,18 @@ function create_labs($data, $pre_data) {
     return $labs;
 }
 
-function create_text($name, $lab_name, $num, $max, $prev_lab) {
-    // TODO: 全体的にconstants 化
-    echo $prev_lab . PHP_EOL;
-    if (in_array($lab_name, array('学科外(系列等)', '(未定)'))) {
-        return <<<EOF
-{$lab_name} 登録者が増えました
-{$num}名
-
-EOF;
-    }
-    $fill = $max < $num ? $max : $num;
-    $over = $max < $num ? $num - $max : 0;
-    $emp  = $max - $fill;
-    $name_suffix = '研';
-    $graph = str_repeat('■', $fill) . str_repeat('□', $emp) . str_repeat('◆', $over);
-    $text = '';
-    if (isset($prev_lab)) {
-        $text .= "{$name}さん が {$prev_lab}{$name_suffix} に希望を失いました\n";
-    }
-    $text .= <<<TEXT
-{$name}さん が {$lab_name}{$name_suffix} に希望しました
-【{$lab_name}{$name_suffix}】
-{$graph}
-$num/$max
-
-TEXT;
-    return $text;
-}
-
 function post_tweets($post_texts) {
     foreach($post_texts as $i => $text) {
         if (DEBUG) {
             echo $text;
             continue;
         }
-        $to = new TwistOAuth($userdata->twitter_consumer_key, $userdata->twitter_consumer_key_secret, $userdata-
+        $to = new TwistOAuth(
+            $userdata->twitter_consumer_key,
+            $userdata->twitter_consumer_key_secret,
+            $userdata->twitter_access_token,
+            $userdata->twitter_access_token_secret
+        );
         $url = 'statuses/update';
         $param = array(
             'status' => $text,
